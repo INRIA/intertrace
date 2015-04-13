@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+{% load staticfiles %}
+{% load recordtrace_xtras %}
+
+{% block header %}<b>Home</b>{% endblock %}
+
+{% block content %}
+
+
+        <script type="text/javascript">
+
+            /*window["_img01"] = "{% static 'recordtrace/img/open_file_folder.png' %}";
+            window["_img02"] = "{% static 'recordtrace/img/guy_fawkes_mask.png' %}";*/
+
+
+            var _projBlock = d3.select("#container")
+                .append("div")
+                .attr("class","item")
+                .style("margin-bottom","20px");
+
+            var _projLink = _projBlock.append("a")
+                .attr("href","{% url 'recordtrace:projects' %}")
+                .attr("class","btn");
+
+            /*_projLink.append("img")
+            .attr("height","70px")
+            .attr("src",window["_img01"]);*/
+            _projLink.append("i")
+            .attr("class","icon-folder-open");
+
+            _projLink.append("h3")
+            .attr("class","text-error")
+            .style("margin-bottom",0)
+            .style("margin-top",0)
+            .html("Projects");
+
+            _projLink.append("p")
+            .attr("class","text-error")
+            .html("view");
+
+            /*_projLink.append("p")
+            .html(_url);*/
+
+            var _projLink2 = _projBlock.append("a")
+                .attr("href","{% url 'recordtrace:temp_projects' %}")
+                .attr("class","btn");
+
+            _projLink2.append("i")
+            .attr("class","icon-folder-open");
+
+            _projLink2.append("h3")
+            .attr("class","text-error")
+            .style("margin-bottom",0)
+            .style("margin-top",0)
+            .html("Temp");
+
+            _projLink2.append("p")
+            .attr("class","text-error")
+            .html("view");
+
+        </script>
+
+
+
+{% endblock %}
+
+
+

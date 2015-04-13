@@ -1,0 +1,206 @@
+{% load url from future %}
+
+{% load staticfiles %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+
+  <script type="text/javascript" src="{% static 'recordtrace/masonry.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'recordtrace/d3.js' %}"></script>
+	
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+
+  <link rel="stylesheet" href="{% static 'recordtrace/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'recordtrace/bootstrap.min.css' %}" />
+  <title>Record Trace</title>
+</head>
+<body>
+
+	<div class='header'>
+		{% block header %}Record Trace{% endblock %}
+
+			<div class="input-append" style="float:right">
+				<input id="search-form" type="text" class="span2" placeholder="filter projects"  style="margin-top:7px">
+				<button id="search" class="btn" style="margin-top:7px">Search</button>
+			</div>
+
+		<script type="text/javascript">
+
+		    var _submit = d3.select("#search")
+		    .on("mouseup",function(){
+
+		    	var _keyWords = document.getElementById('search-form').value;
+		    	_keyWords = _keyWords.replace(/([.*+?^=!:${}()|\[\]\/\\])/g," ");
+		    	_keyWords = _keyWords.toLowerCase();
+		    	_keyWords = _keyWords.split(" ");
+
+		    	if(_keyWords !== ""){
+			        d3.selectAll("tbody tr").each(function(d){
+			        	var _this = this;
+			        	_keyWords.forEach(function(kd){
+			        		var _idx = { el: _this, match: false };
+				        	d.forEach(function(od){
+				        		if(od.indexOf(kd) != -1){
+				        			_idx.match = true;
+				        		}
+				        	});
+
+				        	if(_idx.match!=true){
+				        		d3.select(_this)
+				        		.style("display","none");
+				        	}else{
+				        		d3.select(_this)
+				        		.style("display",null)
+				        		.classed("noshow",false);
+				        	}
+
+				        	//console.log(_idx.match)
+
+			        	});
+			        });
+			    }else{
+			    	d3.selectAll("tbody tr")
+			    	.style("display",null)
+			    	.classed("noshow",false);
+			    };
+			    return null;
+		    });
+
+		    d3.select("#search-form")
+		    .on("keypress",function(){
+		    	if(d3.event.keyCode == 13){
+				
+			    	var _keyWords = document.getElementById('search-form').value;
+			    	_keyWords = _keyWords.replace(/([.*+?^=!:${}()|\[\]\/\\])/g," ");
+			    	_keyWords = _keyWords.toLowerCase();
+			    	_keyWords = _keyWords.split(" ");
+
+			    	if(_keyWords !== ""){
+				        d3.selectAll("tbody tr").each(function(d){
+				        	var _this = this;
+				        	_keyWords.forEach(function(kd){
+				        		var _idx = { el: _this, match: false };
+					        	d.forEach(function(od){
+					        		if(od.indexOf(kd) != -1){
+					        			_idx.match = true;
+					        		}
+					        	});
+
+					        	if(_idx.match!=true){
+					        		d3.select(_this)
+					        		.style("display","none");
+					        	}else{
+					        		d3.select(_this)
+					        		.style("display",null)
+					        		.classed("noshow",false);
+					        	}
+
+					        	//console.log(_idx.match)
+
+				        	});
+				        });
+				    }else{
+				    	d3.selectAll("tbody tr")
+				    	.style("display",null)
+				    	.classed("noshow",false);
+				    };
+				    return null;
+
+				};
+		    });
+
+		</script>
+
+	</div>
+
+<div class="container-fluid">
+
+		{% block buttons %}{% endblock %}
+
+
+	<div id="container" class="js-masonry" data-masonry-options='{ "columnWidth": 10, "itemSelector": ".item" }'>
+		{% block content %}{% endblock %}
+	</div>
+
+	{% block footer %}{% endblock %}
+</div>
+
+	<script type="text/javascript">
+
+        var contentNumber = 0;
+
+        function reveal() {
+            var constraintNumber = contentNumber + 50;
+            //IMPORTANT - DO NOT DELETE
+            $(window).trigger('resize');
+            //IMPORTANT - DO NOT DELETE
+            for (i = contentNumber; i < constraintNumber; i++) {
+                //Get the nth div of class content, where n is the contentNumber, and make it shown
+                $('tbody>tr').eq(contentNumber).removeClass("noshow");
+                contentNumber ++;
+            }
+        };
+
+        reveal();
+
+        //Window scroll function
+        $(window).scroll(function() {
+           if ($(window).scrollTop() == $(document).height() - $(window).height()){
+                reveal();
+            }
+        });
+
+
+		function sort_table(tbody, col, asc){
+		    //console.log(tbody.rows[1].cells)
+
+		    var rows = tbody.rows, rlen = rows.length, arr = new Array(), i, j, cells, clen;
+		    // fill the array with values from the table
+		    for(i = 0; i < rlen; i++){
+			    cells = rows[i].cells;
+			    clen = cells.length;
+			    arr[i] = new Array();
+			        for(j = 0; j < clen; j++){
+			        	arr[i][j] = cells[j].innerHTML;
+			        };
+		    }
+
+		    arr.sort(function(a, b){
+		    	if(col !== 0){
+		    		//console.log([a,col,a[col]])
+			    	var _a = a[col].split(">")[1].split("<")[0],
+			    		_b = b[col].split(">")[1].split("<")[0];
+			    }else{
+			    	var _a = a[col],
+			    		_b = b[col];
+			    }
+				if(_a === _b){
+					return a[0] - b[0];
+				}else if(asc === true){
+					return _a - _b;
+				}else if(asc === false){
+					return _b - _a;
+				}
+		        /*return (a[col] == b[col]) ? b[col] - a[col] : ((a[col] - b[col]) ? asc : -1*asc);*/
+		    });
+		    for(i = 0; i < rlen; i++){
+		    	var _uuid = arr[i][1].split(">")[1].split("<")[0];
+
+		    	if(_uuid.indexOf("http://") === -1){
+		        	arr[i] = "<td onmouseover='highlight(\"" + _uuid + "\")' onmouseout='dimm(\"" + _uuid + "\")'>"+arr[i].join("</td><td onmouseover='highlight(\"" + _uuid + "\")' onmouseout='dimm(\"" + _uuid + "\")'>")+"</td>";
+		        }else{
+		        	var _sessNum = arr[i][3].split(">")[1].split("<")[0];
+		        	_sessNum = +_sessNum - 1;
+		        	arr[i] = "<td onmouseover='highlight(" + _sessNum + ")' onmouseout='dimm(" + _sessNum + ")'>"+arr[i].join("</td><td onmouseover='highlight(" + _sessNum + ")' onmouseout='dimm(" + _sessNum + ")'>")+"</td>";
+		        };
+		    };
+		    //console.log(arr)
+		    tbody.innerHTML = "<tr>"+arr.join("</tr><tr>")+"</tr>";
+		};
+
+
+	</script>
+</body>
+</html>

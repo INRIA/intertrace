@@ -1,0 +1,44 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+
+<style>
+  body {
+    font: 10px sans-serif;
+  }
+
+  .dot {
+    fill: #000;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+  }
+
+</style>
+<script src="http://d3js.org/d3.v3.js"></script>
+</head>
+
+<body>
+  <div id="viz"></div>
+  <script src="{% static 'recordtrace/sessionvis.js' %}"></script>
+  <script>
+
+    function writeToDom(title, content) {
+      d3.select("body").html("<div class='header'>var " + title + " = </div><div><pre>" + content + "</pre></div>");
+    }
+
+    d3.json("{% url 'recordtrace:sessionJSON' session.id %}", visualizeSession);
+
+
+  </script>
+</body>
+
+</html>

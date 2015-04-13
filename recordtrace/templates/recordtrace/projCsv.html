@@ -1,0 +1,95 @@
+{% load staticfiles %}
+{% load url from future %}
+
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+body {
+  font: 10px sans-serif;
+}
+
+.dot {
+      fill: #000;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+    </style>
+    <script src="http://d3js.org/d3.v3.js"></script>
+  </head>
+  <body>
+    <div id="viz"></div>
+    <script src="{% static 'recordtrace/sessionvis.js' %}"></script>
+    <script>
+
+    function writeJSONToDom(title, content) {
+      d3.select("body").html("<div class='header'>var " + title + " = </div><div><pre>" + content + "</pre></div>");
+    }
+
+    function writeCSVToDom(content) {
+      d3.select("body").html("<div class='header'><div><pre>uuid,ts,value,label,action,cat<br/>" + content + "</pre></div>");
+    }
+
+        function convertToCSV(objArray) {
+            var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+            var str = '';
+
+            for (var i = 0; i < array.length; i++) {
+                var line = '';
+                for (var index in array[i]) {
+                    if (line != '') line += ','
+
+                    line += array[i][index];
+                }
+
+                str += line + '\r\n';
+            }
+
+            return str;
+        }
+
+    </script>
+
+
+{% if sessions %}
+
+    {% for session in sessions %}
+
+
+
+    <script type="text/javascript">
+
+    //alert("{{ session.doc_url }}")
+
+      d3.json("{% url 'recordtrace:projDCSV' session.doc_url %}", function(data){
+
+        //console.log(data)
+
+        var jsonObject = JSON.stringify(data, null, 4);
+
+        //writeJSONToDom('data', jsonObject);
+
+        //console.log(data)
+        writeCSVToDom(convertToCSV(jsonObject));
+
+
+        //visualizeSession
+
+      });
+
+  
+    </script>
+
+    {% endfor %}
+{% endif %}
+  </body>
+</html>

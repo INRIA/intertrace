@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+{% load staticfiles %}
+{% load recordtrace_xtras %}
+
+{% block header %}<a href="{% url 'recordtrace:index' %}">Home</a> › <a href="{% url 'recordtrace:projects' %}">Projects</a> › <b>Sessions</b>{% endblock %}
+
+
+{% block content %}
+<p><a href="{% url 'recordtrace:index' %}">Back to Index</a>
+{% if latest_event_list %}
+    <ol>
+    {% for event in latest_event_list %}
+        <li><a href="{% url 'recordtrace:event' event.id %}">{{ event.session.session }}, {{ event.ts }}, {{ evet.category }}, {{ event.action }}</a></li>
+    {% endfor %}
+    </ol>
+{% else %}
+    <p>No events are available.</p>
+{% endif %}
+{% endblock %}
+

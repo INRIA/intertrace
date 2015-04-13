@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Trace Test</title>
+    <script type="text/javascript" src="trace.js"></script>
+  </head>
+  <body onload="trace.event('test', 'load', 'body')">
+    <h1>Trace Test</h1>
+
+<p>test #<span id="num">0</span></p>
+
+
+
+<script>
+var num = 1, stop = false;
+   
+function tick() {
+  trace.event('test', 'increment', 'value', num);
+  var span = document.getElementById("num");
+  if (span) span.innerHTML = num;
+  num = num+1;
+  if (! stop)
+    window.setTimeout(tick, 1000);
+}
+
+tick();
+
+function stopCount() {
+  stop = true;
+}
+</script>
+
+<input type="button" value="Stop count!" onclick="stopCount()" />
+
+  </body>
+</html>

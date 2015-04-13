@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+{% load staticfiles %}
+{% load recordtrace_xtras %}
+
+{% block header %}<a href="{% url 'recordtrace:index' %}">Home</a> › Projects{% endblock %}
+
+{% block content %}
+
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>Project URL</th>
+                <th class="sortable"><i class="icon-minus"></i> Individual Browser Connections #</th>
+                <th>Download (Single File)</th>
+                <th>Download (All Files)</th>
+            </tr>
+        </thead>
+        <tbody>
+
+{% if sessions %}
+    {% for session in sessions %}
+        <!--url 'recordtrace:connections' session.doc_url|base64_encode as the_url-->
+        {% url 'recordtrace:connections' session.doc_url|base64_encode as the_url %}
+        {% url 'recordtrace:downloadFULLCSV' session.doc_url|base64_encode as full_csv %}
+        {% url 'recordtrace:downloadFULLJSON' session.doc_url|base64_encode as full_json %}
+
+
+        <tr class="noshow">
+            <td class="main-td"><a href="{{ the_url }}">{{ session.doc_url }}</a></td>
+            <td><span class="text-error">{{ session.people_count }}</span></td>
+            <td><i class="icon-download"></i> <a href="{{ full_csv }}" target="_blank">CSV</a> | <a href="{{ full_json }}" target="_blank">JSON</a></td>
+            <td><i class="icon-download"></i> CSV | JSON</td>
+        </tr>
+
+    {% endfor %}  
+{% else %}
+    <tr>
+        <td colspan="7">No sessions are available.</td>
+    </tr>
+{% endif %}
+    
+        </tbody>
+    </table>
+
+    <script type="text/javascript">
+
+        var _nodeList = Array.prototype.slice.call(d3.select("thead tr").node().children);
+
+        var tables = document.getElementsByTagName('table');
+        var table = tables[tables.length -1];
+        var rows = table.rows;
+        for(var i = 0, td; i < rows.length; i++){
+            if(i!==0){
+                td = document.createElement('td');
+                td.appendChild(document.createTextNode(i));
+                rows[i].insertBefore(td, rows[i].firstChild);
+            }else{
+                th = document.createElement('th');
+                th.appendChild(document.createTextNode('#'));
+                rows[i].insertBefore(th, rows[i].firstChild);
+            }
+        };
+
+        d3.selectAll(".main-td")
+        .each(function(){
+            var _url = d3.select(this).select("a").html();
+            var _url1 = _url.split("://")[1];
+            var _data = _url.replace(/([.*+?^=!:${}()|\[\]\/\\])/g," ");
+            _data = _data.toLowerCase();
+            _data = _data.split(" ");
+
+            d3.select(this.parentNode).datum(_data);
+            d3.select(this).select("a").html(_url1);
+        });
+
+        d3.selectAll(".sortable")
+        .on("mouseover",function(){
+            var _sel = d3.select(this),
+                _i = _sel.select("i");
+            if(_i.classed("icon-minus") == true){
+                _sel.style("cursor","s-resize");
+            }else if(_i.classed("icon-chevron-down") == true){
+                _sel.style("cursor","n-resize");
+            }else{
+                _sel.style("cursor","row-resize");
+            };
+        })
+        .on("mouseup",function(){
+
+            var _sel = d3.select(this),
+                _i = _sel.select("i"),
+                _idx = _nodeList.indexOf(_sel.node()) + 1;
+
+            var _tbody = d3.select(this.parentNode.parentNode.parentNode).select("tbody").node();
+            if(_i.classed("icon-minus") == true){
+                sort_table(_tbody,_idx,true);
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-chevron-down");
+            }else if(_i.classed("icon-chevron-down") == true){
+                sort_table(_tbody,_idx,false);
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-chevron-up");
+            }else{
+                sort_table(_tbody,0,true); 
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-minus");
+            };
+
+            return null;
+        });
+
+
+    </script>
+
+
+{% endblock %}
+
+
+
+
+

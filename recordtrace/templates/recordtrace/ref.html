@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+
+{% block title %}Particpants{% endblock %}
+
+{% block content %}
+{% if sessions %}
+    <ol start="{{ sessions.start_index }}">
+    {% for session in sessions %}
+        <li>
+      <a href="{% url 'recordtrace:sessionvis' session.id %}">Vis</a>
+	  <a href="{% url 'recordtrace:session' session.id %}">{{ session.session }}, {{ session.count_sessions }}, {{ session.doc_url }}</a></li>
+    {% endfor %}
+    </ol>
+{% else %}
+    <p>No sessions are available.</p>
+{% endif %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if sessions.has_previous %}
+            <a href="?page={{ sessions.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ sessions.number }} of {{ sessions.paginator.num_pages }}.
+        </span>
+
+        {% if sessions.has_next %}
+            <a href="?page={{ sessions.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock %}

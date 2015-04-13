@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+{% load staticfiles %}
+{% load recordtrace_xtras %}
+
+{% block header %}<a href="{% url 'recordtrace:index' %}">Home</a> › Temp{% endblock %}
+
+{% block content %}
+
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>UUID</th>
+                <th>URL</th>
+                <th>Date</th>
+                <th>Download (Single File)</th>
+            </tr>
+        </thead>
+        <tbody>
+
+{% if sessions %}
+    {% for session in sessions %}
+        <!--url 'recordtrace:connections' session.doc_url|base64_encode as the_url-->
+        {% url 'recordtrace:connections' session.doc_url|base64_encode as the_url %}
+        {% url 'recordtrace:downloadFULLCSV' session.doc_url|base64_encode as full_csv %}
+        {% url 'recordtrace:downloadFULLJSON' session.doc_url|base64_encode as full_json %}
+
+        {% url 'recordtrace:csv' session.id as the_session_url %}
+    <script type="text/javascript">
+        console.log("{{ session.id }}")
+    </script>
+
+        <tr class="noshow">
+            <td class="main-td"><a href="{{ the_session_url }}" target="_blank">{{ session.session }}</a></td>
+            <td><a href="{{ the_url }}">{{ session.doc_url }}</a></td>
+            <td>{{ session.date }}</td>
+            <td><i class="icon-download"></i> <a href="{% url 'recordtrace:downloadCSV' session.id %}" target="_blank">CSV</a> | <a href="{% url 'recordtrace:downloadJSON' session.id %}" target="_blank">JSON</a></td>
+        </tr>
+
+    {% endfor %}  
+{% else %}
+    <tr>
+        <td colspan="7">No sessions are available.</td>
+    </tr>
+{% endif %}
+    
+        </tbody>
+    </table>
+
+    <script type="text/javascript">
+
+        var _nodeList = Array.prototype.slice.call(d3.select("thead tr").node().children);
+
+        var tables = document.getElementsByTagName('table');
+        var table = tables[tables.length -1];
+        var rows = table.rows;
+        for(var i = 0, td; i < rows.length; i++){
+            if(i!==0){
+                td = document.createElement('td');
+                td.appendChild(document.createTextNode(i));
+                rows[i].insertBefore(td, rows[i].firstChild);
+            }else{
+                th = document.createElement('th');
+                th.appendChild(document.createTextNode('#'));
+                rows[i].insertBefore(th, rows[i].firstChild);
+            }
+        };
+
+
+    </script>
+
+
+    <div class="pagination">
+        <span class="step-links">
+            {% if sessions.has_previous %}
+                <a href="?page={{ sessions.previous_page_number }}">‹ previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ sessions.number }} of {{ sessions.paginator.num_pages }}.
+            </span>
+
+            {% if sessions.has_next %}
+                <a href="?page={{ sessions.next_page_number }}">next ›</a>
+            {% endif %}
+        </span>
+    </div>
+
+
+{% endblock %}
+
+
+
+
+

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+
+{% block title %}Event {{ event.id }}{% endblock %}
+
+{% block content %}
+<p><a href="{% url 'recordtrace:session' event.session.id %}">Back to session</a>
+    <ul>
+      <li>id: {{ event.id }}
+      <li>session: {{ event.session.id }}
+      <li>category: {{ event.category }}
+      <li>action: {{ event.action }}
+      <li>label: {{ event.label }}
+      <li>value: {{ event.value }}
+    </ul>
+{% endblock %}
+

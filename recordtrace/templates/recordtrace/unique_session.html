@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% load url from future %}
+{% load staticfiles %}
+{% load recordtrace_xtras %}
+
+{% block header %}<a href="{% url 'recordtrace:index' %}">Home</a> › <a href="{% url 'recordtrace:projects' %}">Projects</a> › <a href="{% url 'recordtrace:connections' docurl|base64_encode %}">User Activity</a> › UUId: {{ uuid }} {% endblock %}
+
+
+{% block buttons %}
+    <!--
+    <div class='btn-group' style='margin-bottom:20px;'>
+        <div class='btn disabled'><i class="icon-eye-open"></i> Explore</div>
+        <div class='btn'>
+            <a href="{% url 'recordtrace:projJSON' docurl %}" target="_blank">
+                <i class="icon-download"></i> JSON 
+            </a>
+        </div>
+        <div class='btn'>
+            <a href="{% url 'recordtrace:projCSV' docurl %}" target="_blank">
+                <i class="icon-download"></i> CSV
+            </a>
+        </div>
+    </div>
+    -->
+{% endblock %}
+
+
+{% block content %}
+<script type="text/javascript">
+	var _genericdata = new Array();
+</script>
+
+<!-- RESET HERE
+<div id="viz"></div>
+-->
+       
+
+    {% block thead %}
+
+    <!-- full_csv HERE -->
+    {% url 'recordtrace:downloadFULLCSV' docurl|base64_encode as full_csv %}
+
+    <table class="table table-hover table-condensed">
+        <thead>
+            <tr>
+                <th>Project (url)</th>
+                <th>User Id</th>
+                <th class="sortable"><i class="icon-minus"></i> Session #</th>
+                <th class="sortable"><i class="icon-minus"></i> Total Traces #</th>
+                <th class="sortable"><i class="icon-minus"></i> User Traces #</th>
+                <th class="sortable"><i class="icon-minus"></i> System Traces #</th>
+                <th>Download—<i class="icon-download"></i> <a href="{{ full_csv }}">ALL (CSV)</a></th>
+            </tr>
+        </thead>
+        <tbody>
+
+    {% endblock %}
+
+
+
+
+
+<!-- GENERATE THE TABLE -->
+{% if latest_event_list %}
+
+
+    {% for event in latest_event_list %}
+
+    	<script type="text/javascript">
+
+    		_genericdata.push({ ts: "{{ event.ts }}", cat: "{{ event.category }}", action: "{{ event.action }}", label: "{{ event.label }}", value: "{{ event.value }}", project: "{{ docurl }}",  user: "{{ event.session_id }}"});
+
+    	</script>
+
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="7">No events are available.</td>
+    </tr>
+{% endif %}
+
+        </tbody>
+    </table>
+
+    <script type="text/javascript">
+
+		// FIT THE TIME SCALES FOR PATTERN DETECTION
+		/*var _nestTime = _genericdata.slice(0),
+			_nestTime = d3.nest()
+				.key(function(d){ return d.uuid; })
+				.entries(_genericdata),
+			_totalTimes = new Array();*/
+
+
+		_genericdata.sort(function(a,b){
+			if(a.ts === b.ts){
+				if(a.cat === b.cat){
+					return a.action - b.action;
+				}else{
+					return a.cat - b.cat;
+				}
+			}else{
+				return a.ts - b.ts;
+			}
+		})
+		//.sort(function(a,b){ return a.cat - b.cat })
+		//.sort(function(a,b){ return a.action - b.action });
+
+		var _initTime = _genericdata[0].ts,
+			_session = 0,
+			_tempHold = _genericdata[0].ts;
+
+
+
+		// PROBLEM HERE > NOT RETURNING THE RIGHT NUMBER OF SESSIONS
+		// THE PROBLEM SEEMS TO BE THAT WE HAVE _state (cat) BEFORE
+		// _trace (cat)
+		_genericdata.forEach(function(d){
+			if(d.cat === "_trace" && d.action === "browser"){
+
+				//if(d.ts >= _tempHold + 250){
+					//console.log(d.cat)
+					_initTime = d.ts;
+					_tempHold = d.ts;
+					_session += 1;
+
+				//};
+			};
+			d.relts = d.ts - _initTime;
+			d.sessionID = _session;
+			return null;
+		});
+
+		var _nestSessions = d3.nest()
+			.key(function(d){ return d.sessionID; })
+			.entries(_genericdata);
+
+			//console.log(_nestSessions)
+		// APPEND THE TABLE ENTRIES
+		var _tbody = d3.select("table.table")
+			.select("tbody");
+
+
+		_nestSessions.forEach(function(d){
+			var _tr = _tbody.append("tr")
+				.attr("class","noshow");
+
+			_tr.append("td")
+				.html("<a href='" + d.values[0].project + "' target='_blank'>" + d.values[0].project + "</a>")
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.html(d.values[0].user)
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.append("span")
+				.attr("class","text-error")
+				.html(+d.key + 1)
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.append("span")
+				.attr("class","text-error")
+				.html(d.values.length)
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.append("span")
+				.attr("class","text-error")
+				.html(function(){
+					var _userTraces = new Array();
+					d.values.forEach(function(c){
+						if(c.cat === "_user"){
+							_userTraces.push(c.cat);
+						};
+						return null;
+					});
+					return _userTraces.length;
+				})
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.append("span")
+				.attr("class","text-error")
+				.html(function(){
+					var _userTraces = new Array();
+					d.values.forEach(function(c){
+						if(c.cat === "_system"){
+							_userTraces.push(c.cat);
+						};
+						return null;
+					});
+					return _userTraces.length;
+				})
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+
+			_tr.append("td")
+				.html("not yet available")
+				.on("mouseover",function(){
+					return highlight(d.key);
+				})
+				.on("mouseout",function(){
+					return dimm(d.key);
+				});
+			return null;
+		});
+
+
+
+    	// ADD THE INDEX
+        var _nodeList = Array.prototype.slice.call(d3.select("thead tr").node().children);
+
+        var tables = document.getElementsByTagName('table');
+        var table = tables[tables.length -1];
+        var rows = table.rows;
+        for(var i = 0, td; i < rows.length; i++){
+            if(i!==0){
+                td = document.createElement('td');
+                td.appendChild(document.createTextNode(i));
+                rows[i].insertBefore(td, rows[i].firstChild);
+            }else{
+                th = document.createElement('th');
+                th.appendChild(document.createTextNode('#'));
+                rows[i].insertBefore(th, rows[i].firstChild);
+            }
+        };
+
+        d3.selectAll(".main-td")
+        .each(function(){
+            var _url = d3.select(this).select("a").html();
+            var _url1 = _url.split("://")[1];
+            var _data = _url.replace(/([.*+?^=!:${}()|\[\]\/\\])/g," ");
+            _data = _data.toLowerCase();
+            _data = _data.split(" ");
+
+            d3.select(this.parentNode).datum(_data);
+        });
+
+        d3.selectAll(".sortable")
+        .on("mouseover",function(){
+            var _sel = d3.select(this),
+                _i = _sel.select("i");
+            if(_i.classed("icon-minus") == true){
+                _sel.style("cursor","s-resize");
+            }else if(_i.classed("icon-chevron-down") == true){
+                _sel.style("cursor","n-resize");
+            }else{
+                _sel.style("cursor","row-resize");
+            };
+        })
+        .on("mouseup",function(){
+
+            var _sel = d3.select(this),
+                _i = _sel.select("i"),
+                _idx = _nodeList.indexOf(_sel.node()) + 1;
+                //console.log(_idx)
+
+            var _tbody = d3.select(this.parentNode.parentNode.parentNode).select("tbody").node();
+            if(_i.classed("icon-minus") == true){
+                sort_table(_tbody,_idx,true);
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-chevron-down");
+            }else if(_i.classed("icon-chevron-down") == true){
+                sort_table(_tbody,_idx,false);
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-chevron-up");
+            }else{
+                sort_table(_tbody,0,true); 
+
+                d3.selectAll(".sortable:not(.temp)")
+                .select("i")
+                .attr("class","icon-minus");
+
+                _i.attr("class","icon-minus");
+            };
+
+            return null;
+        });
+
+    </script>
+
+
+
+<!-- VISUALIZATION STUFF -->
+{% url 'recordtrace:sessionVJSON' uuid as vis_data %}
+
+<!-- GENERATE THE VISUALIZATION -->
+<script src="{% static 'recordtrace/unique_sessionvis.js' %}"></script>
+
+<script type="text/javascript">
+    function setProgress(){
+        // MORE INFO AT https://gist.github.com/mbostock/3750941
+        var meter = svg.append("g")
+            .attr("class", "progress-meter")
+            .attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
+
+        meter.append("image")
+            .attr("width",300)
+            .attr("height",215)
+            .attr("x",-300/2)
+            .attr("y",-215/2)
+            .attr("xlink:xlink:href","{% static 'recordtrace/progress.gif' %}")
+         
+        var text = meter.append("text")
+            .attr("text-anchor", "middle")
+            .attr("dy", ".35em")
+            .attr("y",40)
+            .text("Please wait as this may take a while.")
+    };
+
+    // THIS IS WHAT NEEDS TO BE RESET
+    /*setProgress();
+    d3.json("{% url 'recordtrace:sessionVJSON' uuid %}",visualizeSession);*/
+
+
+    function highlight(what){
+    	var color = d3.scale.category20b(),
+    		_session_num = new Array();
+
+        d3.selectAll("rect.s-" + what)
+        	.each(function(d,i){
+        		var _sel = d3.select(this),
+        			_sess = d.sessionID - 1;
+        		if(_sel.classed("end-point") === false){
+	        		_sel.style("fill",function(){
+	        			//return d3.rgb("#0088CC").brighter(_sess/5);
+	        			return color(d.sessionID);
+	        		})
+	            	.style("opacity",0.75);
+	            }else if(_sel.classed("end-point") === true){
+	        		_sel.style("fill",function(){
+	        			return "firebrick";
+	        		})
+	            	.style("opacity",0.75);
+
+	            	var _selX = _sel.attr("x"),
+						_t = d3.transform(_sel.attr("transform")),
+						_x = _t.translate[0],
+						_y = _t.translate[1],
+						_offX = +_selX + +_x;
+
+	            	svg.append("rect")
+	            		.attr("class","end-txt")
+		            	.attr("x",_offX - 3)
+		            	.attr("y",_activityHeight + margin.bottom + margin.top - 14)
+		            	.attr("width",80)
+		            	.attr("height",14)
+		            	.style("fill","#FFF");
+
+	            	svg.append("text")
+	            		.attr("class","end-txt")
+		            	.attr("x",_offX)
+		            	.attr("y",_activityHeight + margin.bottom + margin.top - 3)
+		            	.attr("text-anchor",function(){
+		            		if(_offX > w/2){
+		            			return "end";
+		            		}else{
+		            			return "start";
+		            		};
+		            	})
+		            	.text("End Session: " + (d.sessionID + 1) )
+		            	.style("font-size","11px");
+	            };
+
+            	if(_session_num.indexOf(d.sessionID) === -1){
+            		_session_num.push(d.sessionID);
+            	}
+
+            	return null;
+        	})
+            .moveToFront();
+
+        d3.selectAll(".point:not(.s-" + what + ")")
+            .style("opacity",0.1);
+
+    	var _legend = d3.select(".legend").select("p");
+
+    	_session_num.forEach(function(d){
+	    	_legend.append("span")
+	    		.html("&#x258e;session&nbsp;" + (d+1) + " ")
+	    		.style("color",color(d))
+	    		.style("margin-right","15px");
+	    	return null;
+	    });
+
+        return null;
+    }
+    function dimm(what){
+        d3.selectAll("rect.s-" + what)
+            .style("fill",null);
+        d3.selectAll(".point")
+            .style("opacity",0.5);
+        d3.selectAll(".end-point")
+            .style("opacity",0);
+        d3.selectAll(".end-txt")
+        	.remove();
+
+        var _legend = d3.select(".legend p").selectAll("span").remove();
+        return null;
+    }
+
+</script>
+
+{% endblock %}
+

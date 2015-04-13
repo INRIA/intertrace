@@ -1,0 +1,86 @@
+.header{
+	display: block;
+	background-color: #333;
+	height: 50px;
+	color: #FFF;
+	margin-bottom: 20px;
+	font-size: 1.5em;
+	line-height: 50px;
+	padding: 0 40px 0 40px;
+	font-weight: lighter;
+}
+
+
+table tbody tr td a:visited{
+	color: darkslateblue;
+}
+
+.noshow{
+	display: none;
+}
+
+
+#viz{
+	width: 100%;
+	background-color: #FFF;  
+	/*position: fixed;
+	top: 50px;*/
+}
+
+/*#viz .chart{
+	width: 1024px;
+	margin: auto;
+}*/
+
+.f-object-body{
+	/*background-color: #3D3D3D;*/
+	/*border-top: 1px solid #000;
+	border-right: 1px solid #000;*/
+	padding-left: 5px;
+	color: #FFF;
+	cursor: default;
+}
+.f-object-body p{
+	cursor: default;
+}
+
+path.domain{
+	fill: none;
+}
+
+path.domain{
+	stroke: #000;
+	stroke-width: 0.5;
+}
+
+.tick line{
+	stroke: #000;
+	stroke-width: 0.25;
+}
+
+.tick text{
+	font-size: 11px;
+}
+
+.activity-line{
+	fill: none;
+	stroke: #08C;
+	stroke-width: 3;
+}
+
+.legend{
+	font-size: 12px;
+}
+
+.buton-group{
+	display: inline-block;
+}
+.buton-group .btn-group{
+	vertical-align:top;
+	/*clear: none;*/
+}
+
+/*table.table{
+	margin-top: 300px;
+	overflow: scroll;
+}*/

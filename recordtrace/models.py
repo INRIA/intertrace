@@ -1,6 +1,6 @@
 from django.db import models
 
-import base64
+#import base64
 
 
 class Session(models.Model):

@@ -1,10 +1,10 @@
-from django.conf import settings
-from django.conf.urls.static import static
-from django.conf.urls import patterns, url
+#from django.conf import settings
+#from django.conf.urls.static import static
+from django.conf.urls import url
 
 from recordtrace import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^trace$', views.trace, name='trace'),
     url(r'^projects$', views.projects, name='projects'),
@@ -28,4 +28,4 @@ urlpatterns = patterns('',
     url(r'^downloadJSON/(?P<session_id>\S+)/$', views.downloadJSON, name='downloadJSON'),
     url(r'^downloadFULLJSON/(?P<proj_url>\S+)/$', views.downloadFULLJSON, name='downloadFULLJSON'),
     url(r'^event/(?P<event_id>\d+)$', views.event, name='event'),
-)
+]

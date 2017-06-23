@@ -1,19 +1,13 @@
-import sys, json, logging, csv
+import json, logging, csv
 import base64
 
-import zipfile
-
-from django.http import HttpResponse, HttpResponseRedirect
-from django.utils.http import urlencode
+from django.http import HttpResponse
 from django.shortcuts import render
-from django.views import generic
-from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.template.defaultfilters import slugify
-from django.db.models.loading import get_model
 
 from recordtrace.models import Session, Event, Metadata
 
@@ -35,13 +29,13 @@ class Echo(object):
         return value
 
 
-def sortAndUniq(input):
-  output = []
-  for x in input:
-    if x.doc_url not in output:
-      output.append(x)
-  output.sort()
-  return output
+# def sortAndUniq(input):
+#   output = []
+#   for x in input:
+#     if x.doc_url not in output:
+#       output.append(x)
+#   output.sort()
+#   return output
 
 
 

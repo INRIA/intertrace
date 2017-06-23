@@ -14,8 +14,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'intertrace',                      # Or path to database file if using sqlite3.
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': os.path.join(BASE_DIR, "intertrace.db"), # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'intertrace',
         'PASSWORD': 'intertrace',
@@ -128,6 +128,7 @@ INSTALLED_APPS = (
 )
 
 LOGIN_REDIRECT_URL = "/recordtrace/"
+LOGIN_URL = "/registration/login/"
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -157,3 +158,19 @@ LOGGING = {
         },
     }
 }
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [ "templates" ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
